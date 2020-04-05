@@ -14,6 +14,33 @@ names(datos)[c(1,2,3,8,9)] <- c("ID","Fecha","Ubicacion","Tipo","Pais_procedenci
 datos = datos %>% mutate(Fecha = as.Date(Fecha, "%d/%m/%Y"))
 #datos agrgados
 resumen = datos %>% group_by(Fecha) %>% summarize(cuenta = n())
+##
+datos = datos %>% mutate(recuperados = ifelse(Atención..=="Recuperado",1,0),
+                         Feallecido = ifelse(Atención..=="Fallecido",1,0),
+                         Grave = ifelse(Atención..=="Hospital UCI",1,0),
+                         Casa = ifelse(Atención..=="Casa",1,0),
+                         Hospital = ifelse(Atención..=="Hospital",1,0),
+                         grup_edad = ifelse(Edad<10,"0-9",
+                                            ifelse(Edad<20,"10-19",
+                                                   ifelse(Edad<30,"20-29",
+                                                          ifelse(Edad<40,"30-39",
+                                                                 ifelse(Edad<50,"40-49",
+                                                                        ifelse(Edad<60,"50-59",
+                                                                               ifelse(Edad<70,"60-69",
+                                                                                      ifelse(Edad<80,"70-79",
+                                                                                             ifelse(Edad<90,"80-89","90-99"))))))))))
+#Tipo de casos por edad 
+edad_casos = datos %>% group_by(grup_edad) %>% summarize(recuperados = sum(recuperados,na.rm = T),
+                                                    Feallecido = sum(Feallecido,na.rm = T),
+                                                    Grave = sum(Grave,na.rm = T),
+                                                    Casa = sum(Casa,na.rm = T),
+                                                    Hospital = sum(Hospital,na.rm = T))
+##grupos de edad
+fig <- plot_ly(edad_casos, x = ~grup_edad, y = ~recuperados, type = 'bar', name = 'Recuperados')
+fig <- fig %>% add_trace(y = ~Feallecido, name = 'Feallecido')
+fig <- fig %>% add_trace(y = ~Grave, name = 'Hospitalizado en UCI')
+fig <- fig %>% add_trace(y = ~Hospital, name = 'Hospitalizado')
+fig <- fig %>% layout(title = 'Casoso de COVI-19 por tipo',yaxis = list(title = 'Casos'), barmode = 'stack')
 #Plot casos por día
 p <- ggplot(data=resumen, aes(x=Fecha, y=cuenta))+geom_line()+geom_point()
 fig <- ggplotly(p)
