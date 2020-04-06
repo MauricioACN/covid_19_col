@@ -36,10 +36,10 @@ edad_casos = datos %>% group_by(grup_edad) %>% summarize(recuperados = sum(recup
                                                     Casa = sum(Casa,na.rm = T),
                                                     Hospital = sum(Hospital,na.rm = T))
 ##grupos de edad
-fig <- plot_ly(edad_casos, x = ~grup_edad, y = ~recuperados, type = 'bar', name = 'Recuperados')
-fig <- fig %>% add_trace(y = ~Feallecido, name = 'Feallecido')
-fig <- fig %>% add_trace(y = ~Grave, name = 'Hospitalizado en UCI')
+fig <- plot_ly(edad_casos, x = ~grup_edad, y = ~Grave, type = 'bar', name = 'Hospitalizado en UCI')
 fig <- fig %>% add_trace(y = ~Hospital, name = 'Hospitalizado')
+fig <- fig %>% add_trace(y = ~recuperados, name = 'Recuperados')
+fig <- fig %>% add_trace(y = ~Feallecido, name = 'Feallecido')
 fig <- fig %>% layout(title = 'Casoso de COVI-19 por tipo',yaxis = list(title = 'Casos'), barmode = 'stack')
 #Plot casos por día
 p <- ggplot(data=resumen, aes(x=Fecha, y=cuenta))+geom_line()+geom_point()
@@ -84,6 +84,19 @@ for (s in 1:nrow(resumen)) {
   }
   print(s)
 }
+###
+resumen$diff_factor <- NA
+for (s in 1:nrow(resumen)) {
+  if (s==1) {
+    resumen$diff_factor[s] <- NA
+  }
+  else{
+    resumen$diff_factor[s] <- resumen$factor_crec[s]-resumen$factor_crec[s-1]
+  }
+  print(s)
+}
+###
+resumen$percent_factor <- round((resumen$diff_factor/resumen$factor_crec)*100,2)
 ### creación de promedios moviles
 resumen = resumen %>% mutate(media_movil_2 = rollmean(factor_crec, k = 2 , fill = NA, align = "right"),
                              media_movil_3 = rollmean(factor_crec, k = 3 , fill = NA, align = "right"),
