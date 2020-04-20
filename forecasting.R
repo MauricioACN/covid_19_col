@@ -73,4 +73,11 @@ for (s in (casos+1):nrow(resumen_edit)) {
 #resumen_edit_export = resumen_edit %>% select(Fecha,casos,casos_pronostico)
 #datos_24 = write.csv(resumen_edit_export, "resumen_24_marzo.csv")
 
+#### Distribución de Casos por fecha de inicio de sintomas -----------------------------------------
+
+datos = datos %>% mutate(Asintomatico = ifelse(FIS == "Asintomático",1,0),
+                         FIS = ifelse(FIS %in% c("Asintomático","No disponilbe"),NA,FIS),
+                         FIS = as.POSIXct(FIS, tz = "UTC", "%Y-%m-%dT%H:%M:%OS"))
+resumen = datos %>% group_by(FIS) %>% summarize(Conteo = n()) %>% mutate(FIS = as.Date(FIS,"%Y-%m-%d"),
+                                                                         Anotacion = ifelse(FIS=="2020-03-24","Inicio Cuarentena",NA))
 
